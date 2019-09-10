@@ -1,0 +1,35 @@
+#!/bin/bash
+
+source ~/.remote-store/$1
+s=$(pass ${CONNECTION_PASSWORD_FILE})
+a=()
+i=0
+while read -r line
+do
+  a[i]="${a[i]}${line}"$'\n'
+  let ++i
+done <<< "$s"
+
+for l in "${a[@]}"
+do
+    if [[ $l =~ 'User:' ]]; then
+        CONNECTION_USER=$(echo $l | cut -d\  -f2)
+    elif [[ $l =~ 'Domain:' ]]; then
+        CONNECTION_DOMAIN=$(echo $l | cut -d\  -f2)
+    fi
+done
+CONNECTION_PASSWORD=${a[0]}
+if [[ ${CONNECTION_TYPE} == 'OVPN' ]]; then
+CONNECTION_FILE="/etc/openvpn/client/${CONNECTION_USER}@${CONNECTION_HOST}.ovpn"
+/usr/bin/expect <(cat << EOF
+spawn sudo openvpn --script-security 2 --config $CONNECTION_FILE --auth-user-pass
+expect "Enter Auth Username:"
+send "${CONNECTION_USER}\n"
+expect "Enter Auth Password:"
+send "${CONNECTION_PASSWORD}\n"
+interact
+EOF
+)
+elif [[ ${CONNECTION_TYPE} == 'RDP' ]]; then
+rdesktop -u ${CONNECTION_USER} -d ${CONNECTION_DOMAIN} -p ${CONNECTION_PASSWORD} ${CONNECTION_HOST}
+fi
