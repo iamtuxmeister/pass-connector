@@ -1,0 +1,4 @@
+CONNECTION_TITLE='' # Name to display in rofi
+CONNECTION_TYPE='RDP|OVPN|SSH' # Type to select the correct connection provider
+CONNECTION_HOST='' # Server to connect to ip address or hostname
+CONNECTION_PASSWORD_FILE='' # Path to 'pass' password Directory/File
